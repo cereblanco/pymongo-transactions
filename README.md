@@ -20,7 +20,7 @@ def sample_transaction():
     # https://pymongo.readthedocs.io/en/stable/api/pymongo/client_session.html
     # 1. Increments orders by 100
     # 2. Decrements inventory by 100
-    # 3. If either 1 of 2 fails, then the transaction should be aborted
+    # 3. If either 1 or 2 fails, then the transaction should be aborted
     with get_client().start_session() as session:
         session.with_transaction(increment_orders_decrement_inventory_callback)
 
