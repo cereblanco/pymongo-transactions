@@ -15,7 +15,7 @@ def get_client() -> pymongo.client_session.ClientSession:
 
 
 def init_database():
-    # TODO: create a migration script for creating db, and its collections
+    # TODO: create a migration script for creating db and its collections
     orders = get_client().get_database().orders
     inventory = get_client().get_database().inventory
 
@@ -28,25 +28,28 @@ def init_database():
     orders.insert_one({"sku": "abc123", "qty": 0})
 
 
-def transaction_callback(session):
+def sample_transaction():
+    init_database()
+    # https://pymongo.readthedocs.io/en/stable/api/pymongo/client_session.html
+    # 1. Increments orders by 100
+    # 2. Decrements inventory by 100
+    # 3. If either 1 of 2 fails, then the transaction should be aborted
+    with get_client().start_session() as session:
+        session.with_transaction(increment_orders_decrement_inventory_callback)
+
+    print("Successful transaction!")
+
+
+def increment_orders_decrement_inventory_callback(session):
     orders = session.client.get_database().orders
     inventory = session.client.get_database().inventory
 
-    # increment 100 items to orders
+    # increments 100 items to orders
     orders.update_one({"sku": "abc123"}, {"$inc": {"qty": 100}}, session=session)
 
-    # decrement 100 items to inventory
+    # decrements 100 items from inventory
     inventory.update_one(
         {"sku": "abc123", "qty": {"$gte": 0}},
         {"$inc": {"qty": -100}},
         session=session,
     )
-
-
-def sample_transaction():
-    init_database()
-    # https://pymongo.readthedocs.io/en/stable/api/pymongo/client_session.html
-    with get_client().start_session() as session:
-        session.with_transaction(transaction_callback)
-
-    print("Successful transaction!")
