@@ -54,7 +54,7 @@ make sample_transaction
 make test
 ```
 - executes sample transaction
-- make sure the correct date were created/updated in the database collections
+- make sure the correct data were created/updated in the database collections
 
 ## Others
 ```bash
