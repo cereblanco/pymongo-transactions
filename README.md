@@ -15,31 +15,31 @@ def init_database():
     orders.insert_one({"sku": "abc123", "qty": 0})
 
 
-def sample_transaction():
+def sample_transaction(sku: str, qty: int):
     init_database()
     # https://pymongo.readthedocs.io/en/stable/api/pymongo/client_session.html
     # 1. Increments orders by 100
     # 2. Decrements inventory by 100
     # 3. If either 1 of 2 fails, then the transaction should be aborted
     with get_client().start_session() as session:
-        session.with_transaction(increment_orders_decrement_inventory_callback)
+        session.with_transaction(lambda session: increment_orders_decrement_inventory_callback(session, sku=sku, qty=qty))
 
     print("Successful transaction!")
 
 
-def increment_orders_decrement_inventory_callback(session):
+def increment_orders_decrement_inventory_callback(session, sku=sku, qty=qty):
     orders = session.client.get_database().orders
     inventory = session.client.get_database().inventory
 
-    # increments 100 items to orders
-    orders.update_one({"sku": "abc123"}, {"$inc": {"qty": 100}}, session=session)
-
     # decrements 100 items from inventory
     inventory.update_one(
-        {"sku": "abc123", "qty": {"$gte": 0}},
-        {"$inc": {"qty": -100}},
+        {"sku": "abc123", "qty": {"$gte": qty}},
+        {"$inc": {"qty": -qty}},
         session=session,
     )
+    # increments 100 items to orders
+    orders.update_one({"sku": sku, {"$inc": {"qty": 100}}, session=session)
+
 ```
 
 ## Run example
