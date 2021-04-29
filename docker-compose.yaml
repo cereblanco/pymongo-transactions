@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:4.4
+    container_name: mongodb
+    # we need a constant hostname for --bind_ip
+    hostname: mongodb.dev
+    volumes:
+      - data_db:/data/db
+    networks:
+      - internal
+    ## exposes 27017 port to 27017 on host
+    ## not needed if we configure a separate network for mongodb and pymonggo-app
+    ## ports:
+    ##   - "27017:27017"
+    command: ["--replSet", "rs0", "--bind_ip_all"] # creates replica set named "rs0"
+    healthcheck:
+      # initiates and checks status of replica set
+      test: $$(echo "rs.initiate().ok || rs.status().ok" | mongo --quiet)
+      interval: 10s
+      start_period: 30s
+  
+  pymongo-app:
+    build: .
+    image: pymongo-app
+    container_name: pymongo-app
+    depends_on:
+      - mongodb
+    networks:
+      - internal
+    volumes:
+      - ".:/app"
+    environment:
+      MONGODB_URL: "mongodb://localhost:27017/test"
+    command: ["poetry", "run", "sample_transaction"]
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  data_db: {}
