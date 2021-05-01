@@ -45,12 +45,12 @@ def create_schema_validation_for_inventory():
 
 
 def init_database():
-    create_schema_validation_for_inventory()
-
     # TODO: create a migration script for creating db and its collections
+    create_schema_validation_for_inventory()
     orders = get_client().get_database().orders
     inventory = get_client().get_database().inventory
 
+    # reset collections
     orders.delete_many({})
     inventory.delete_many({})
 
