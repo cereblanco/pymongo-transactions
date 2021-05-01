@@ -17,10 +17,14 @@ def get_client() -> pymongo.client_session.ClientSession:
 
 def create_schema_validation_for_inventory():
     """
-    WARNING: Dirty trick! For demo purposes only!
     ---------------------------------------------
-    - this makes sure `sku` and `qty` are required fields
-    - this makes sure that minimum value for `qty` is 0
+    WARNING: Do not copy! For demo purposes only!
+    It is recommended that you create separate module for database migration/setting validation rules.
+    ---------------------------------------------
+    - For this demo, this schema validation
+    - makes sure `sku` and `qty` are required fields
+    - makes sure that minimum value for `qty` is 0
+    - Thus if we update `inventory` with a negative value, it should trigger validation error in a transaction
     """
     get_client().get_database().inventory.drop()
     get_client().get_database().create_collection("inventory")
