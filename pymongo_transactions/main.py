@@ -18,7 +18,7 @@ def get_client() -> pymongo.client_session.ClientSession:
 def create_schema_validation_for_inventory():
     """
     ---------------------------------------------
-    WARNING: Do not copy! For demo purposes only!
+    WARNING: For demo purposes only!
     It is recommended that you create separate module for database migration/setting validation rules.
     ---------------------------------------------
     - For this demo, this schema validation
@@ -63,8 +63,8 @@ def init_database():
 def sample_transaction(sku: str, qty: int):
     init_database()
     # https://pymongo.readthedocs.io/en/stable/api/pymongo/client_session.html
-    # 1. Increments orders by 100
-    # 2. Decrements inventory by 100
+    # 1. Increments orders qty
+    # 2. Decrements inventory qty
     # 3. If either 1 of 2 fails, then the transaction should be aborted
     with get_client().start_session() as session:
         session.with_transaction(
@@ -79,10 +79,10 @@ def increment_orders_decrement_inventory_callback(session, sku: str, qty: int):
     orders = get_client().get_database().orders
     inventory = get_client().get_database().inventory
 
-    # increments 100 items to orders
+    # increments orders qty
     orders.update_one({"sku": sku}, {"$inc": {"qty": qty}}, session=session)
 
-    # decrements 100 items from inventory
+    # decrements inventory qty
     inventory.update_one(
         {"sku": sku},
         {"$inc": {"qty": -(qty)}},
